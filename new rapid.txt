@@ -1,0 +1,307 @@
+MODULE MainModule
+    CONST robtarget rhome:=[[-17.20,-272.49,617.81],[0.00887573,0.99979,-0.000213541,0.0184803],[-2,0,0,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+    CONST robtarget BinA:=[[-151.68,-354.90,593.94],[0.00886209,0.99979,-0.000157286,0.0184782],[-2,0,0,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+    CONST robtarget BinB:=[[144.06,-354.90,593.96],[0.00884849,0.99979,-0.000151428,0.0184976],[-1,0,1,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+    CONST robtarget BinC:=[[0,0,0],[1,0,0,0],[0,0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];
+    CONST robtarget toBarcode:=[[592.80,-133.96,563.57],[0.70413,0.70953,0.019315,0.0199054],[-1,-2,2,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+    CONST robtarget scan:=[[592.80,-133.96,563.56],[0.0659424,0.105529,-0.701906,0.701316],[-1,-2,-4,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+    CONST robtarget gotobin:=[[0,0,0],[1,0,0,0],[0,0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];
+    CONST robtarget readytoplace:=[[0,0,0],[1,0,0,0],[0,0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];
+
+    VAR string client_ip;
+    VAR num time_val := WAIT_MAX; 
+    PERS bool again;
+    VAR bool box:=FALSE;
+    PERS num cnt:=0;
+
+
+    VAR string toBinA;
+    TASK PERS tooldata bintool:=[TRUE,[[0,0,295],[1,0,0,0]],[2,[0,0,150],[1,0,0,0],0,0,0]];
+    CONST robtarget scan10:=[[655.24,-131.88,528.02],[0.675209,0.696053,0.190324,-0.152908],[-1,-2,2,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+    CONST robtarget reject:=[[165.21,371.80,593.94],[0.00883941,0.99979,-0.000165323,0.0184894],[0,-1,2,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+    VAR shapedata whole_cell;
+    VAR pos low_point:=[778.25,302.03,25.64];
+    VAR pos high_point:=[-300,-550.18,508.67];
+    VAR wztemporary wztemp1:=[0];
+    VAR shapedata shape1;
+    VAR shapedata shape2;
+    VAR shapedata shape3;
+
+PROC server_recover()
+        VAR socketdev server_socket;
+        VAR socketdev client_socket;
+        VAR string receive_string;
+        VAR string client_ip;
+        SocketClose server_socket;
+        SocketClose client_socket;
+        SocketCreate server_socket;
+        SocketBind server_socket, "192.168.0.1", 1025;
+        SocketListen server_socket;
+        SocketAccept server_socket,
+        client_socket\ClientAddress:=client_ip;
+        ERROR
+        IF ERRNO=ERR_SOCK_TIMEOUT THEN
+        RETRY;
+        ELSEIF ERRNO=ERR_SOCK_CLOSED THEN
+        RETURN;
+        ELSE
+        ! No error recovery handling
+        ENDIF
+
+        
+    ENDPROC
+
+
+    PROC main()
+        
+        VAR socketdev server_socket;
+        VAR socketdev client_socket;
+        VAR string receive_string;
+        VAR string client_ip;
+        VAR string value1;
+        VAR string value2;
+        VAR string value3;
+        VAR string value4;
+        VAR string value5;
+        VAR string value6;
+        VAR string value7;
+        VAR bool value1g;
+        VAR bool value2g;
+        VAR bool value3g;
+        VAR bool value4g;
+        VAR bool value5g;
+        VAR bool value6g;
+        VAR bool value7g;
+        VAR num pos1;
+        VAR num pos2;
+        VAR num pos3;
+        VAR num pos4;
+        VAR num pos5;
+        VAR num pos6;
+        VAR num pos7;
+        VAR pose objr;
+        VAR robtarget rtemp;
+        VAR robtarget rpick;
+        VAR rawbytes buffer;
+        VAR num msg_length;
+        VAR orient nobjr;
+        VAR bool flag;
+        VAR intnum hi;
+        
+        
+        
+
+        
+        WHILE TRUE DO                   ! first while loop in main func  to creat socket server
+        !SocketCreate server_socket;
+        !SocketBind server_socket, "192.168.125.1", 11002;
+        !SocketListen server_socket;     
+        !l1:
+        Reset output2;
+        ConfL\on;
+        MoveL rhome,v1000,z50,tool0\WObj:=wobj0;
+        WaitTime\InPos,0.1;
+        !IF again=FALSE or cnt = 0 THEN
+             IF (SocketGetStatus(server_socket) = SOCKET_CLOSED)  SocketCreate server_socket;
+        
+             IF (SocketGetStatus(server_socket) = SOCKET_CREATED and SocketGetStatus(server_socket) <> SOCKET_BOUND)  SocketBind server_socket, "192.168.125.1", 11002;
+        
+             IF (SocketGetStatus(server_socket) = SOCKET_BOUND)  SocketListen server_socket;
+       
+           SocketAccept server_socket, client_socket
+           \ClientAddress:=client_ip;
+           TPWrite "Client at "+client_ip+" connected.";
+        !ENDIF
+       
+        
+        WHILE TRUE DO               ! second while loop in main function to 
+            again:=FALSE;
+            
+            count:=0;       
+            WaitTime\InPos, 1;
+            SocketSend client_socket \Str := "success";
+            !WaitTime\InPos, 3;       
+            FOR count FROM 0 TO 5 DO
+                WaitTime\InPos, 0.1;
+                WaitTime\InPos, 0.2;
+                IF count = 0 THEN
+                  SocketReceive client_socket \str :=receive_string\Time:=WAIT_MAX;
+                  value1:=receive_string;
+                  TPWrite " x point Value recieved"+"  "+receive_string+"saved value"+value1;
+                
+                  SocketSend client_socket\Str:="next_point";
+                  TPWrite "Waiting for y point";
+                ELSEIF count = 1 THEN
+                  SocketReceive client_socket \str :=receive_string\Time:=WAIT_MAX;
+                  value2:=receive_string;
+                  TPWrite " y point Value recieved"+"  "+receive_string+"saved value"+value1;
+                
+                
+                  TPWrite "Waiting for z point";
+                 ELSEIF count = 2 THEN
+                  SocketSend client_socket\Str:="next_point";
+                  SocketReceive client_socket \str :=receive_string\Time:=WAIT_MAX;
+                  value3:=receive_string;
+                  TPWrite " z point Value recieved"+"  "+receive_string+"saved value"+value1;
+                
+                
+                  TPWrite "Waiting for aplha point";
+                 ELSEIF count = 3 THEN
+                  SocketSend client_socket\Str:="next_point";
+                  SocketReceive client_socket \str :=receive_string\Time:=WAIT_MAX;
+                  value4:=receive_string;
+                  TPWrite " alpha point Value recieved"+"  "+receive_string+"saved value"+value1;
+                
+                  !SocketSend client_socket\Str:="next_point";
+                  TPWrite "Waiting for beta point";
+                 ELSEIF count = 4 THEN
+                  SocketSend client_socket\Str:="next_point";
+                  SocketReceive client_socket \str :=receive_string\Time:=WAIT_MAX;
+                  value5:=receive_string;
+                  TPWrite " beta point Value recieved"+"  "+receive_string+"saved value"+value1;
+                
+                  !SocketSend client_socket\Str:="next_point";
+                  TPWrite "Waiting for gamma point";
+                
+                  ELSEIF count = 5 THEN
+                   SocketSend client_socket\Str:="next_point";
+                   SocketReceive client_socket \str :=receive_string\Time:=WAIT_MAX;
+                   value6:=receive_string;
+                   TPWrite " gamma point Value recieved"+"  "+receive_string+"saved value"+value1;
+            
+                ! SocketSend client_socket\Str:="next_point";
+                   TPWrite "all points recieved";        
+               ENDIF
+           ENDFOR
+            cnt:=0;
+            value1g:=StrToVal(value1,pos1);
+            value2g:=StrToVal(value2,pos2);
+            value3g:=StrToVal(value3,pos3);
+            value4g:=StrToVal(value4,pos4);
+            value5g:=StrToVal(value5,pos5);
+            value6g:=StrToVal(value6,pos6);
+             
+            
+            objr.trans.x:=pos1;
+            objr.trans.y:=pos2;
+            objr.trans.z:=pos3;
+            objr.rot:= OrientZYX(pos6,pos5,pos4);
+            rtemp:=CRobT(\Tool:=bintool);  
+            rtemp.trans.x:=pos1;
+            rtemp.trans.y:=pos2;
+	    rtemp.trans.z:=pos3;
+            MoveL rtemp,v1000,z50,bintool\WObj:=wobj0;
+            WaitTime\InPos, 0.1;
+            
+            rtemp.rot:=OrientZYX(pos6,pos5,pos4);
+            nobjr:=rtemp.rot;
+            rtemp.rot:=nobjr;
+                        
+            Movel rtemp,v300,z50,bintool\WObj:=wobj0;
+            
+            !rpick:=rtemp;
+            !rpick.trans.z:=pos3-50;
+            !MoveJ rtemp,v1000,z50,bintool\WObj:=wobj0;  
+            !set output2;
+            !SearchL\Stop, Input4, rtemp, rpick, v100, bintool\WObj:=wobj0;  
+            
+            
+                
+            !WaitDI Input4,1\MaxTime:=2\TimeFlag:=flag;
+            !IF flag = FALSE THEN
+             !   MoveL readytoplace,v1000,z50,tool0\WObj:=wobj0;
+              !  GOTO L1;
+               ! TPErase;
+               ! TPWrite "not product picked, trying again";
+            !ENDIF
+            
+            !WaitTime\InPos, 0.1;
+            !Reset output1;
+            !set output1;
+            !rtemp.trans.z:=300;
+            !WaitTime\InPos, 0.1;
+            !MoveL rtemp,v1000,z50,bintool\WObj:=wobj0;
+            !WaitTime\InPos, 0.1;
+            !MoveL toBarcode,v500,z50,tool0\WObj:=wobj0;
+            !Set output3;
+            !WaitDI Input4,1;
+            !MoveJ scan,v1000,z50,tool0\WObj:=wobj0;
+            !MoveJ toBarcode, v1000, z50, tool0;
+            !Reset output3;
+            !MoveL readytoplace,v1000,z50,tool0\WObj:=wobj0;
+            !IF box = TRUE THEN
+               ! MoveL BinB,v1000,z50,tool0\WObj:=wobj0;
+               ! WaitTime\InPos, 0.1;
+               ! Reset output2;
+             !   box:=FALSE;
+            !ELSEIF Input1 = 1 THEN
+                
+              !  MoveL BinB,v1000,z50,tool0\WObj:=wobj0;
+                !WaitTime\InPos, 0.1;
+               ! WaitTime\InPos, 0.1;
+                !Reset output2;
+            !ELSEIF box = FALSE THEN
+                !WaitTime\InPos, 0.1;
+             !   MoveL reject, v1000, z50, tool0\WObj:=wobj0;
+              !  WaitTime\InPos, 0.1;
+               ! Reset output2;
+                !box:=TRUE;
+            !ELSE
+                !MoveL rhome,v1000,z50,tool0\WObj:=wobj0;
+                !WaitTime\InPos, 0.1;
+                !Reset output2;
+           ! ENDIF
+           
+           
+                      
+           
+               ! MoveL BinA,v1000,z50,tool0\WObj:=wobj0;
+                !MoveL rhome,v1000,z50,tool0\WObj:=wobj0;
+            
+            
+        ENDWHILE
+        SocketClose server_socket;
+            SocketClose client_socket;
+            
+        ENDWHILE
+        
+        
+       
+       
+        ERROR
+        IF ERRNO=ERR_SOCK_TIMEOUT THEN
+        RETRY;
+        ELSEIF ERRNO=SOCKET_CLOSED THEN
+        server_recover;
+        RETRY;
+        ELSEIF ERRNO=ERR_WHLSEARCH THEN
+            rtemp.trans.z:=300;
+            WaitTime\InPos, 0.1;
+            MoveL rtemp,v1000,z50,bintool\WObj:=wobj0;
+            MoveL rhome,v1000,z50,tool0\WObj:=wobj0;
+            WaitTime\InPos, 0.1;
+            again:=TRUE;
+            cnt:=1;
+            main;
+            Stop;
+            
+        ELSEIF ERRNO=ERR_SIGSUPSEARCH THEN
+            Reset output2;
+            WaitTime\InPos, 0.2;
+            Set output2;
+            !again:=TRUE;
+            RETRY;
+        
+          ELSE
+          ! No error recovery handling 
+          ENDIF
+        
+    ENDPROC
+	PROC wz_binpicking()
+		WZBoxDef\Outside, shape3, low_point, high_point;
+		WZLimSup\Temp, wztemp1, shape3;
+	ENDPROC
+ENDMODULE
+
+
+    
