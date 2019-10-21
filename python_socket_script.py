@@ -22,19 +22,19 @@ except:
   
 # receive data from the server 
 
-jatin = s.recv(4096)
+data = s.recv(4096)
 
-if len(jatin)>0:
-    res=str(jatin)
+if len(data)>0:
+    res=str(data)
     print(res[2:len(res)-1])
 
 def values():
   for i in range(0,6):
     inp=input("enter value")
     s.send(bytes(inp, 'utf-8'))
-    jatin = s.recv(4096)
-    if len(jatin)>0:
-        res=str(jatin)
+    data = s.recv(4096)
+    if len(data)>0:
+        res=str(data)
         print(res[2:len(res)-1])
         
     
