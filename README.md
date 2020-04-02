@@ -17,6 +17,6 @@ STEP 2: Copy the Ipv4 address  and replace the ipv4 address in the rapid script 
 
 STEP 1: connect your abb robot and go to controller tab.
 STEP 2: click on add controller and then click on one click connect.
-STEP 3: click on "request  write access" .
+STEP 3: click on "request  write access".
 STEP 4: click on "Go offline" on the right most side of options.
 STEP 5: disconnectr you robot if you want to work in simulation.
